@@ -6,5 +6,7 @@ const functions = module.exports = {
  
   filter: require('./filters'),
   utils: require('./utils'),
-  exception: require('./exception')
+  exception: require('./exception'),
+  sequelize: require('./sequelize'),
+  promisify: require('./promisify')
 }
