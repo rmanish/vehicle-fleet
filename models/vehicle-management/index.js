@@ -6,15 +6,43 @@ const functions = require('./../../functions'),
 	
 const get = {
 	
-	getVehicleData: async function () {
+	getVehicleData: async function (query) {
+        var queryTag = "select * from vehicles ";
+        if(query.assigned=="true"){
+            queryTag = `select * from vehicles where status = 1`;
+        }else if(query.assigned=="false"){
+            queryTag = `select * from vehicles where status = 0`;
+        }
 		try {
-            var queryTag = "select * from vehicles ";
-            console.log("I am here")
 			return sequelize.query(queryTag, {type: Sequelize.QueryTypes.SELECT });
 		} catch (ex) {
 			return promisify(ex, '')
 		}
-    }
+    },
+    getVehicleDataByUser: async function (user) {
+		try {
+            var queryTag = "select * from vehicles having  ";
+			return sequelize.query(queryTag, {type: Sequelize.QueryTypes.SELECT });
+		} catch (ex) {
+			return promisify(ex, '')
+		}
+    },
+    getVehicleByRegNumber: async function (registrationNumber) {
+		try {
+            var queryTag = `select * from vehicles having registrationNumber = '${String(registrationNumber)}'`;
+           
+            const vehiclesData = await sequelize.query(queryTag, {type: Sequelize.QueryTypes.SELECT });
+            console.log("vehiclesData",vehiclesData)
+            const resposeData = vehiclesData[0];
+            var tripQuery = `select * from tripTrackers where VehicleId = ${resposeData.vehicleId}`;
+            
+            resposeData.tripDetails = await sequelize.query(tripQuery, {type: Sequelize.QueryTypes.SELECT });
+            console.log("queryTag===>",resposeData)
+			return resposeData
+		} catch (ex) {
+			return promisify(ex, '')
+		}
+    },
 }
 
 module.exports = get;
