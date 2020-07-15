@@ -11,7 +11,7 @@ module.exports = {
         }
         const data = await testModal.get.getVehicleData();
         console.log(data);
-		return queryJSON;
+		return data;
 
 	}
 }
