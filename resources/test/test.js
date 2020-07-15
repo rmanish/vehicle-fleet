@@ -11,7 +11,8 @@ module.exports = {
 
         try{
             const data= await getTestData();
-            res.send(data);
+            res.res_data=data;
+            return next();
         }catch(err){
             res.send(err);
         }
