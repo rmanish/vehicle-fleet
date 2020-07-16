@@ -27,11 +27,12 @@ const get = {
         }
 		try {
             var vehicles = await sequelize.query(queryTag, {type: Sequelize.QueryTypes.SELECT });
+            console.log(vehicles)
             var vehicleArray = [];
             vehicles.forEach(element => {
-                vehicleArray.push(element.vehicleId)
+                vehicleArray.push(element.id)
             });
-            const tripQuery = `select * from tripTrackers where VehicleId IN (${vehicleArray.join(",")})`;
+            const tripQuery = `select * from trip_details where vehicle_id IN (${vehicleArray.join(",")})`;
             var tripData = await sequelize.query(tripQuery, {type: Sequelize.QueryTypes.SELECT });
             var tripObj = {};
             tripData.forEach(trip=>{
@@ -63,21 +64,22 @@ const get = {
     },
     getVehicleByRegNumber: async function (registrationNumber) {
 		try {
-            var queryTag = `select * from vehicles having registrationNumber = '${String(registrationNumber)}'`;
+            var queryTag = `select * from vehicles having reg_number = '${String(registrationNumber)}'`;
            
             const vehiclesData = await sequelize.query(queryTag, {type: Sequelize.QueryTypes.SELECT });
             const resposeData = vehiclesData[0];
-            var tripQuery = `select * from tripTrackers where VehicleId = ${resposeData.vehicleId} ORDER BY updatedAt DESC`;
+            var tripQuery = `select * from trip_details where vehicle_id = ${resposeData.id} ORDER BY updated_date DESC`;
             var tripDetails = await sequelize.query(tripQuery, {type: Sequelize.QueryTypes.SELECT });
             resposeData.tripDetails = {
                 tripInfo:tripDetails[0],
                 tripCount:tripDetails.length
             }
             var vehicleInfoQuery = `SELECT *
-                                    FROM (((vehiclePermits
-                                    INNER JOIN vehicleInsurances ON vehiclePermits.VehicleId = vehicleInsurances.VehicleId)
-                                    INNER JOIN vehicleFitnesses ON vehiclePermits.VehicleId = vehicleFitnesses.VehicleId)
-                                    INNER JOIN vehicleFeatures ON vehiclePermits.VehicleId = vehicleFeatures.VehicleId);`
+                                    FROM ((((vehicle_permits
+                                    INNER JOIN vehicle_insurance ON vehicle_permits.vehicle_id = vehicle_insurance.vehicle_id)
+                                    INNER JOIN vehicle_detail ON vehicle_permits.vehicle_id = vehicle_detail.vehicle_id)
+                                    INNER JOIN vehicle_maintainence ON vehicle_permits.vehicle_id = vehicle_maintainence.vehicle_id)
+                                    INNER JOIN vehicle_allotment ON vehicle_permits.vehicle_id = vehicle_allotment.vehicle_id);`
             resposeData.vehicleInfo = await sequelize.query(vehicleInfoQuery, {type: Sequelize.QueryTypes.SELECT });
 			return resposeData
 		} catch (ex) {
