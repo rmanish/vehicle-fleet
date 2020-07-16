@@ -8,5 +8,6 @@ const functions = module.exports = {
   utils: require('./utils'),
   exception: require('./exception'),
   sequelize: require('./sequelize'),
-  promisify: require('./promisify')
+  promisify: require('./promisify'),
+  reqParser: require('./reqParser'),
 }

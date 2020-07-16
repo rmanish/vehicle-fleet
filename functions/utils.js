@@ -1,7 +1,4 @@
-/*
-  Author: Deepak Sharma
-  github: https://github.com/deepaksharma2491
-*/
+
 'use strict'
 
 var _ = require('lodash'),

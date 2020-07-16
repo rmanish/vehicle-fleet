@@ -9,7 +9,7 @@ module.exports = {
     getVehicleByRegNumber: async function (req,res,next) {
         const regNumber = req.params.regNumber;
         const data = await vehicleManagementModel.getVehicleByRegNumber(regNumber);
-		res.send(data)
+		    res.send(data)
 
     },
     getVehicleDataByUser:async function (req,res,next) {
