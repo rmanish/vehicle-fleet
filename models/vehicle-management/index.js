@@ -46,9 +46,8 @@ const get = {
             });
             const tripQuery = `select * from trip_details where vehicle_id IN (${vehicleArray.join(",")})`;
             var tripData = await sequelize.query(tripQuery, {type: Sequelize.QueryTypes.SELECT });
-            const allotmentQuery = `select * from vehicle_allotment where vehicle_id IN (${vehicleArray.join(",")})`;
+            const allotmentQuery = `select * from vehicle_allotment where vehicle_id IN (${vehicleArray.join(",")} AND allotment_status=1)`;
             var allotmentData = await sequelize.query(allotmentQuery, {type: Sequelize.QueryTypes.SELECT });
-            console.log(allotmentData)
 
             const tripObj = construcObjectOnId(tripData);
             const allotmentObj = construcObjectOnId(allotmentData);
