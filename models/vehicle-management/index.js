@@ -9,11 +9,23 @@ function sortObject(obj,keyName){
 }
 
 function getTripObject(trips){
-    const obj = sortObject(trips,"mobilityTrackerId")
+    const obj = sortObject(trips,"id")
     return {
         tripCount:trips.length,
         lastTrip:obj[0]
     }
+}
+
+function construcObjectOnId(obj){
+    var objIdMap = {};
+            obj.forEach(trip=>{
+                if(objIdMap[trip.vehicle_id]){
+                    objIdMap[trip.vehicle_id].push(trip);
+                }else{
+                    objIdMap[trip.vehicle_id] = [trip]
+                }
+            })
+    return objIdMap;
 }
 	
 const get = {
@@ -27,28 +39,28 @@ const get = {
         }
 		try {
             var vehicles = await sequelize.query(queryTag, {type: Sequelize.QueryTypes.SELECT });
-            console.log(vehicles)
+            
             var vehicleArray = [];
             vehicles.forEach(element => {
                 vehicleArray.push(element.id)
             });
             const tripQuery = `select * from trip_details where vehicle_id IN (${vehicleArray.join(",")})`;
             var tripData = await sequelize.query(tripQuery, {type: Sequelize.QueryTypes.SELECT });
-            var tripObj = {};
-            tripData.forEach(trip=>{
-                if(tripObj[trip.VehicleId]){
-                    tripObj[trip.VehicleId].push(trip);
-                }else{
-                    tripObj[trip.VehicleId] = [trip]
-                }
-            })
+            const allotmentQuery = `select * from vehicle_allotment where vehicle_id IN (${vehicleArray.join(",")})`;
+            var allotmentData = await sequelize.query(allotmentQuery, {type: Sequelize.QueryTypes.SELECT });
+            console.log(allotmentData)
+
+            const tripObj = construcObjectOnId(tripData);
+            const allotmentObj = construcObjectOnId(allotmentData);
+
             const tripMapping = {};
             for(trips in tripObj){
                 tripMapping[trips] = getTripObject(tripObj[trips])
             }
 			return {
                 vehicles,
-                tripMapping
+                tripMapping,
+                allotmentObj
             };
 		} catch (ex) {
 			return promisify(ex, '')
