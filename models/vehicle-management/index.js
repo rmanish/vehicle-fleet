@@ -16,13 +16,13 @@ function getTripObject(trips){
     }
 }
 
-function construcObjectOnId(obj){
+function construcObjectOnId(obj,keyName){
     var objIdMap = {};
             obj.forEach(trip=>{
-                if(objIdMap[trip.vehicle_id]){
-                    objIdMap[trip.vehicle_id].push(trip);
+                if(objIdMap[trip[keyName]]){
+                    objIdMap[trip[keyName]].push(trip);
                 }else{
-                    objIdMap[trip.vehicle_id] = [trip]
+                    objIdMap[trip[keyName]] = [trip]
                 }
             })
     return objIdMap;
@@ -44,22 +44,44 @@ const get = {
             vehicles.forEach(element => {
                 vehicleArray.push(element.id)
             });
-            const tripQuery = `select * from trip_details where vehicle_id IN (${vehicleArray.join(",")})`;
-            var tripData = await sequelize.query(tripQuery, {type: Sequelize.QueryTypes.SELECT });
-            const allotmentQuery = `select * from vehicle_allotment where vehicle_id IN (${vehicleArray.join(",")} AND allotment_status=1)`;
-            var allotmentData = await sequelize.query(allotmentQuery, {type: Sequelize.QueryTypes.SELECT });
-
-            const tripObj = construcObjectOnId(tripData);
-            const allotmentObj = construcObjectOnId(allotmentData);
-
-            const tripMapping = {};
-            for(trips in tripObj){
-                tripMapping[trips] = getTripObject(tripObj[trips])
+            let tripMapping = {};
+            let allotmentObj = {};
+            if(vehicleArray.length){
+                const tripQuery = `select * from trip_details where vehicle_id IN (${vehicleArray.join(",")})`;
+                var tripData = await sequelize.query(tripQuery, {type: Sequelize.QueryTypes.SELECT });
+                const allotmentQuery = `select * from vehicle_allotment where vehicle_id IN (${vehicleArray.join(",")} AND allotment_status=1)`;
+                var allotmentData = await sequelize.query(allotmentQuery, {type: Sequelize.QueryTypes.SELECT });
+                const tripObj = construcObjectOnId(tripData, "vehicle_id");
+                allotmentObj = construcObjectOnId(allotmentData,"vehicle_id");
+                
+                for(trips in tripObj){
+                    tripMapping[trips] = getTripObject(tripObj[trips])
+                }
             }
+            
+
+            const userArray = [];
+            allotmentData.forEach(element => {
+                userArray.push(element.user_id)
+            });
+
+            let userObj = {};
+            if(userArray.length){
+                const assignedUserQuery = `select * from users where id IN (${userArray.join(",")})`;
+                var assignedUserData = await sequelize.query(assignedUserQuery, {type: Sequelize.QueryTypes.SELECT });
+                userObj = construcObjectOnId(assignedUserData,"id")
+            }
+            
+
+            
+            
+
+            
 			return {
                 vehicles,
                 tripMapping,
-                allotmentObj
+                allotmentMap:allotmentObj,
+                userMap:userObj
             };
 		} catch (ex) {
 			return promisify(ex, '')
@@ -78,7 +100,11 @@ const get = {
             var queryTag = `select * from vehicles having reg_number = '${String(registrationNumber)}'`;
            
             const vehiclesData = await sequelize.query(queryTag, {type: Sequelize.QueryTypes.SELECT });
+            if(!vehiclesData.length){
+                return {};
+            }
             const resposeData = vehiclesData[0];
+            
             var tripQuery = `select * from trip_details where vehicle_id = ${resposeData.id} ORDER BY updated_date DESC`;
             var tripDetails = await sequelize.query(tripQuery, {type: Sequelize.QueryTypes.SELECT });
             resposeData.tripDetails = {
